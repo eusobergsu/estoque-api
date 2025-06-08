@@ -28,7 +28,7 @@ async def test_list_itens():
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-#Teste de produto inesistente
+#Teste de produto inexistente
 @pytest.mark.asyncio
 async def test_obter_produto_inexistente():
     transport = ASGITransport(app=app)
