@@ -4,7 +4,9 @@ from app.database import database, engine
 from app import models
 from app.models import ItemModel
 from sqlalchemy import select, insert, update, delete
-from app.models import Item
+from app.models import It
+import os
+from dotenv import load_dotenv
 
 # Criação das tabelas no banco
 models.Base.metadata.create_all(bind=engine)
