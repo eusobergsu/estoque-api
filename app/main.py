@@ -4,7 +4,7 @@ from app.database import database, engine
 from app import models
 from app.models import ItemModel
 from sqlalchemy import select, insert, update, delete
-from app.models import It
+from app.models import Item
 import os
 from dotenv import load_dotenv
 
