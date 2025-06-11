@@ -1,11 +1,8 @@
 from sqlalchemy import create_engine, MetaData
 from databases import Database
-from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-if os.getenv("RAILWAY_ENVIRONMENT") is None:
-    load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
