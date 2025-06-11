@@ -5,16 +5,11 @@ from app import models
 from app.models import ItemModel
 from sqlalchemy import select, insert, update, delete
 from app.models import Item
-import os
-from dotenv import load_dotenv
 
 # Criação das tabelas no banco
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-if os.getenv("RAILWAY_ENVIRONMENT") is None:
-    load_dotenv()
 
 
 @app.on_event("startup")
