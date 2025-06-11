@@ -14,6 +14,7 @@ app = FastAPI()
 if os.getenv("RAILWAY_ENVIRONMENT") is None:
     load_dotenv()
 
+
 @app.on_event("startup")
 async def startup():
     await database.connect()
