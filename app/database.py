@@ -1,18 +1,21 @@
-from sqlalchemy import create_engine, MetaData
-from databases import Database
 import os
-from sqlalchemy.orm import declarative_base, sessionmaker
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base
+from databases import Database
 
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL não definida no .env")
+    raise ValueError("DATABASE_URL não encontrada no .env")
 
-# Engine e database assíncrono
+# ❗ O driver deve ser síncrono
+# postgresql://... (sem +asyncpg)
 engine = create_engine(DATABASE_URL)
-database = Database(DATABASE_URL)
-metadata = MetaData()
 
-# Base para modelos ORM
 Base = declarative_base()
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# database async
+database = Database(DATABASE_URL)
