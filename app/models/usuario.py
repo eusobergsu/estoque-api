@@ -11,4 +11,3 @@ class Usuario(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     senha = Column(String, nullable=False)
     senha_hash = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -7,3 +7,4 @@ def gerar_hash_senha(senha: str) -> str:
 
 def verificar_senha(senha_plana, senha_hash):
     return pwd_context.verify(senha_plana, senha_hash)
+
