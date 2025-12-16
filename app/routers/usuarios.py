@@ -1,44 +1,64 @@
-from fastapi import APIRouter, HTTPException, Depends
-from app.schemas.login import LoginData
-from app.core.seguranca import verificar_senha
-from app.core.jwt import criar_token_acesso
-from sqlalchemy import select, insert
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import insert, select
 from app.database import database
 from app.models.usuario import Usuario
 from app.schemas.usuario import UsuarioCreate, UsuarioOut
-from jose import jwt
+from app.core.seguranca import gerar_hash_senha, verificar_senha
+from app.core.jwt import criar_token_acesso
+
 
 router = APIRouter(prefix="/usuarios", tags=["Usuários"])
 
+
+# ===============================
+#   CADASTRO DE USUÁRIO
+# ===============================
 @router.post("/", response_model=UsuarioOut)
 async def criar_usuario(usuario: UsuarioCreate):
-    async with database.transaction():
-        query = insert(Usuario).values(
-            nome=usuario.nome,
-            email=usuario.email,
-            senha=usuario.senha,
-            senha_hash=usuario.senha
-        )
-        new_id = await database.execute(query)
-        return UsuarioOut(id=new_id, nome=usuario.nome, email=usuario.email)
+    senha_hash = gerar_hash_senha(usuario.senha)
 
+    query = insert(Usuario.__table__).values(
+        nome=usuario.nome,
+        email=usuario.email,
+        senha_hash=senha_hash  # ← CORRIGI: senha_hsh → senha_hash
+    )
+
+    new_id = await database.execute(query)
+
+    return UsuarioOut(
+        id=new_id,
+        nome=usuario.nome,
+        email=usuario.email
+    )
+
+
+# ===============================
+#   LOGIN (OAUTH2)
+# ===============================
 @router.post("/login")
-async def login(dados: LoginData):
-    query = select(Usuario).where(Usuario.email == dados.email)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    query = select(Usuario.__table__).where(
+        Usuario.email == form_data.username
+    )
+
     usuario = await database.fetch_one(query)
 
     if not usuario:
-        raise HTTPException(status_code=400, detail="Usuário não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuário ou senha inválidos"
+        )
 
-    # Verificar senha (depois ajustamos isso, mas fica assim por enquanto)
-    if usuario.senha_hash != dados.senha:
-        raise HTTPException(status_code=400, detail="Senha incorreta")
+    if not verificar_senha(form_data.password, usuario["senha_hash"]):  # ← CORRIGI: senha_hsh → senha_hash
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuário ou senha inválidos"
+        )
 
-    # Criar token JWT
-    token = jwt.encode(
-        {"sub": usuario.email},
-        "SECRET_KEY_AQUI",
-        algorithm="HS256"
-    )
+    token = criar_token_acesso({"sub": usuario["email"]})
 
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
